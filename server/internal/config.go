@@ -20,6 +20,7 @@ const (
 	extensionNameQwenLLM       = "qwen_llm"
 	extensionNameSageMakerLLM  = "sagemaker_llm"
 	extensionNameSageMakerTTS  = "sagemaker_tts"
+	extensionNameFishAudioTTS  = "fish_audio_tts"
 	extensionNameTranscribeAsr = "transcribe_asr"
 
 	// Language
@@ -153,6 +154,9 @@ var (
 		},
 		"Greeting": {
 			{ExtensionName: extensionNameBedrockLLM, Property: "greeting"},
+		},
+		"ModelId": {
+			{ExtensionName: extensionNameFishAudioTTS, Property: "model_id"},
 		},
 	}
 

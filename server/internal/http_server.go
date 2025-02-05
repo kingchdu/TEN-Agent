@@ -55,6 +55,7 @@ type StartReq struct {
 	VoiceType            string `json:"voice_type,omitempty"`
 	PartialStabilization bool   `json:"enable_partial_results_stabilization,omitempty"`
 	Greeting             string `json:"greeting,omitempty"`
+	ModelId              string `json:"model_id,omitempty"`
 }
 
 type StopReq struct {
