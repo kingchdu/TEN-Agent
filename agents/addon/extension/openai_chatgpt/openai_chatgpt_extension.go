@@ -298,7 +298,7 @@ func (p *openaiChatGPTExtension) OnData(
 
 	currentTime := time.Now()
     responseStartTime.Store(currentTime.UnixMilli())
-	
+
 	// start goroutine to request and read responses from openai
 	wg.Add(1)
 	go func(startTime time.Time, inputText string, memory []openai.ChatCompletionMessage) {
@@ -322,7 +322,7 @@ func (p *openaiChatGPTExtension) OnData(
 		var firstSentenceSent bool
 		for {
 			if startTime.UnixMicro() < outdateTs.Load() { // Check whether to interrupt
-				if time.Since(startTime).Milliseconds() > minResponseTimeMs {
+				if int(time.Since(startTime).Milliseconds()) > minResponseTimeMs {
 					slog.Info(fmt.Sprintf("GetChatCompletionsStream recv interrupt and flushing for input text: [%s], startTs: %d, outdateTs: %d",
 						inputText, startTime.UnixMicro(), outdateTs.Load()), logTag)
 					break
