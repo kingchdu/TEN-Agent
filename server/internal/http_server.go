@@ -56,6 +56,7 @@ type StartReq struct {
 	PartialStabilization bool   `json:"enable_partial_results_stabilization,omitempty"`
 	Greeting             string `json:"greeting,omitempty"`
 	ModelId              string `json:"model_id,omitempty"`
+	Prompt 				 string `json:"prompt,omitempty"`
 }
 
 type StopReq struct {

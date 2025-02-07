@@ -158,6 +158,9 @@ var (
 		"ModelId": {
 			{ExtensionName: extensionNameFishAudioTTS, Property: "model_id"},
 		},
+		"Prompt": {
+        	{ExtensionName: extensionNameOpenaiChatgpt, Property: "prompt"},
+    	},
 	}
 
 	// Map the voice name to the voice type
