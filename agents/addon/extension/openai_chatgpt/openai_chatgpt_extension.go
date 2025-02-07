@@ -52,6 +52,7 @@ const (
 	propertyGreeting         = "greeting"          // Optional
 	propertyProxyUrl         = "proxy_url"         // Optional
 	propertyMaxMemoryLength  = "max_memory_length" // Optional
+	minResponseTimeMs		 = 500
 )
 
 var (
@@ -216,9 +217,11 @@ func (p *openaiChatGPTExtension) OnCmd(
 
 	switch cmdName {
 	case cmdInFlush:
-		outdateTs.Store(time.Now().UnixMicro())
-
-		wg.Wait() // wait for chat completion stream to finish
+		if len(memory) > 0 && time.Since(startTime).Milliseconds() >= minResponseTimeMs {
+            outdateTs.Store(time.Now().UnixMicro())
+            
+			wg.Wait() // wait for chat completion stream to finish
+        }
 
 		// send out
 		outCmd, err := rte.NewCmd(cmdOutFlush)
@@ -315,9 +318,11 @@ func (p *openaiChatGPTExtension) OnData(
 		var firstSentenceSent bool
 		for {
 			if startTime.UnixMicro() < outdateTs.Load() { // Check whether to interrupt
-				slog.Info(fmt.Sprintf("GetChatCompletionsStream recv interrupt and flushing for input text: [%s], startTs: %d, outdateTs: %d",
-					inputText, startTime.UnixMicro(), outdateTs.Load()), logTag)
-				break
+				if time.Since(startTime).Milliseconds() > minResponseTimeMs {
+					slog.Info(fmt.Sprintf("GetChatCompletionsStream recv interrupt and flushing for input text: [%s], startTs: %d, outdateTs: %d",
+						inputText, startTime.UnixMicro(), outdateTs.Load()), logTag)
+					break
+				}
 			}
 
 			chatCompletions, err := resp.Recv()
