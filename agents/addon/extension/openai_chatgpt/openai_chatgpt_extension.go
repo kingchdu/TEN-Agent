@@ -61,7 +61,7 @@ var (
 
 	outdateTs atomic.Int64
 	wg        sync.WaitGroup
-	minResponseTimeMs = 500
+	minResponseTimeMs int64 = 500
 	responseStartTime atomic.Int64  // Add this to track the start time of current response
 )
 
@@ -322,7 +322,7 @@ func (p *openaiChatGPTExtension) OnData(
 		var firstSentenceSent bool
 		for {
 			if startTime.UnixMicro() < outdateTs.Load() { // Check whether to interrupt
-				if int(time.Since(startTime).Milliseconds()) > minResponseTimeMs {
+				if time.Since(startTime).Milliseconds() > minResponseTimeMs {
 					slog.Info(fmt.Sprintf("GetChatCompletionsStream recv interrupt and flushing for input text: [%s], startTs: %d, outdateTs: %d",
 						inputText, startTime.UnixMicro(), outdateTs.Load()), logTag)
 					break
