@@ -52,7 +52,6 @@ const (
 	propertyGreeting         = "greeting"          // Optional
 	propertyProxyUrl         = "proxy_url"         // Optional
 	propertyMaxMemoryLength  = "max_memory_length" // Optional
-	minResponseTimeMs		 = 500
 )
 
 var (
@@ -62,6 +61,8 @@ var (
 
 	outdateTs atomic.Int64
 	wg        sync.WaitGroup
+	minResponseTimeMs = 500
+	responseStartTime atomic.Int64  // Add this to track the start time of current response
 )
 
 func newChatGPTExtension(name string) rte.Extension {
@@ -217,7 +218,7 @@ func (p *openaiChatGPTExtension) OnCmd(
 
 	switch cmdName {
 	case cmdInFlush:
-		if len(memory) > 0 && time.Since(startTime).Milliseconds() >= minResponseTimeMs {
+		if len(memory) > 0 && time.Now().UnixMilli() - responseStartTime.Load() >= minResponseTimeMs {
             outdateTs.Store(time.Now().UnixMicro())
             
 			wg.Wait() // wait for chat completion stream to finish
@@ -295,6 +296,9 @@ func (p *openaiChatGPTExtension) OnData(
 		memory = memory[1:]
 	}
 
+	currentTime := time.Now()
+    responseStartTime.Store(currentTime.UnixMilli())
+	
 	// start goroutine to request and read responses from openai
 	wg.Add(1)
 	go func(startTime time.Time, inputText string, memory []openai.ChatCompletionMessage) {
