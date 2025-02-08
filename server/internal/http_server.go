@@ -283,10 +283,11 @@ func (s *HttpServer) processProperty(req *StartReq) (propertyJsonFile string, lo
 		}
 	}
 
-	channelNameMd5 := gmd5.MustEncryptString(req.ChannelName)
+	// channelNameMd5 := gmd5.MustEncryptString(req.ChannelName)
+	channelName := req.ChannelName
 	ts := time.Now().UnixNano()
-	propertyJsonFile = fmt.Sprintf("%s/property-%s-%d.json", s.config.LogPath, channelNameMd5, ts)
-	logFile = fmt.Sprintf("%s/app-%s-%d.log", s.config.LogPath, channelNameMd5, ts)
+	propertyJsonFile = fmt.Sprintf("%s/property-%s-%d.json", s.config.LogPath, channelName, ts)
+	logFile = fmt.Sprintf("%s/app-%s-%d.log", s.config.LogPath, channelName, ts)
 	os.WriteFile(propertyJsonFile, []byte(propertyJson), 0644)
 
 	return
