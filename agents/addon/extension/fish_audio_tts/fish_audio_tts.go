@@ -41,7 +41,6 @@ func defaultFishAudioTTSConfig() fishAudioTTSConfig {
 		OptimizeStreamingLatency: true,
 		RequestTimeoutSeconds:    30,
 		BaseUrl:                  "https://api.fish.audio",
-		BufferSize: 			  16384,
 	}
 }
 
@@ -109,7 +108,7 @@ func (e *fishAudioTTS) textToSpeechStream(rteEnv rte.RteEnv, streamWriter io.Wri
 	}
 
 	// Write the returned PCM data to streamWriter
-	buffer := make([]byte, e.config.BufferSize) // 16KB buffer size
+	buffer := make([]byte, 16384) // 16KB buffer size
 	for {
 		n, err := resp.Body.Read(buffer)
 		if err != nil && err != io.EOF {
