@@ -41,7 +41,7 @@ func defaultFishAudioTTSConfig() fishAudioTTSConfig {
 		OptimizeStreamingLatency: true,
 		RequestTimeoutSeconds:    30,
 		BaseUrl:                  "https://api.fish.audio",
-		BufferSize: 			  16384
+		BufferSize: 			  16384,
 	}
 }
 
