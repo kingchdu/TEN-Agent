@@ -110,9 +110,8 @@ class TranscribeAsrExtension(Extension):
             logger.exception(f"Error putting frame in queue: {e}")
 
     def on_pcm_frame(self, rte: RteEnv, pcm_frame: PcmFrame) -> None:
-        processed_frame = self.process_audio(pcm_frame)
-        if processed_frame is not None:
-            self.put_pcm_frame(pcm_frame=processed_frame)
+        if self.process_audio(pcm_frame):
+            self.put_pcm_frame(pcm_frame)
 
     def on_stop(self, rte: RteEnv) -> None:
         logger.info("TranscribeAsrExtension on_stop")
