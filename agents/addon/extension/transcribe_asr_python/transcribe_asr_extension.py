@@ -71,7 +71,7 @@ class TranscribeAsrExtension(Extension):
 
     def process_audio(self, pcm_frame: PcmFrame) -> bool:
         try:
-            audio_data = np.frombuffer(pcm_frame.get_data(), dtype=np.int16)
+            audio_data = np.frombuffer(pcm_frame.get_data, dtype=np.int16)
             # compute current frame's energy
             frame_energy = np.abs(audio_data).mean() / 32768.0
 
