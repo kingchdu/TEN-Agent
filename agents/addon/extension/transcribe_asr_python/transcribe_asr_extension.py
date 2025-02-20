@@ -10,6 +10,7 @@ from rte import (
 import json
 import asyncio
 import threading
+import numpy as np
 
 from .log import logger
 from .transcribe_wrapper import AsyncTranscribeWrapper, TranscribeConfig
@@ -29,6 +30,12 @@ class TranscribeAsrExtension(Extension):
         self.queue = asyncio.Queue(maxsize=3000) # about 3000 * 10ms = 30s input
         self.transcribe = None
         self.thread = None
+        
+        self.frame_buffer = np.zeros(5, dtype=np.float32)
+        self.buffer_index = 0
+        self.buffer_sum = 0.0
+        self.is_buffer_full = False
+        self.vad_threshold = 0.3
 
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
@@ -62,6 +69,32 @@ class TranscribeAsrExtension(Extension):
 
         rte.on_start_done()
 
+    def process_audio(self, pcm_frame: PcmFrame) -> bool:
+        try:
+            audio_data = np.frombuffer(pcm_frame.get_data(), dtype=np.int16)
+            # compute current frame's energy
+            frame_energy = np.abs(audio_data).mean() / 32768.0
+
+            # update sliding window
+            old_value = self.frame_buffer[self.buffer_index]
+            self.buffer_sum = self.buffer_sum - old_value + frame_energy
+            self.frame_buffer[self.buffer_index] = frame_energy
+            self.buffer_index = (self.buffer_index + 1) % 5
+            
+            if not self.is_buffer_full and self.buffer_index == 0:
+                self.is_buffer_full = True
+            
+            if self.is_buffer_full:
+                avg_energy = self.buffer_sum / 5
+            else:
+                avg_energy = self.buffer_sum / (self.buffer_index or 1)
+                
+            return avg_energy > self.vad_threshold
+            
+        except Exception as e:
+            logger.error(f"Error in audio processing: {e}")
+            return True
+    
     def put_pcm_frame(self, pcm_frame: PcmFrame) -> None:
         if self.loop.is_closed():
             logger.warning("Event loop is closed, cannot enqueue frame")
@@ -77,7 +110,9 @@ class TranscribeAsrExtension(Extension):
             logger.exception(f"Error putting frame in queue: {e}")
 
     def on_pcm_frame(self, rte: RteEnv, pcm_frame: PcmFrame) -> None:
-        self.put_pcm_frame(pcm_frame=pcm_frame)
+        processed_frame = self.process_audio(pcm_frame)
+        if processed_frame is not None:
+            self.put_pcm_frame(pcm_frame=processed_frame)
 
     def on_stop(self, rte: RteEnv) -> None:
         logger.info("TranscribeAsrExtension on_stop")
